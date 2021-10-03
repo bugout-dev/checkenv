@@ -17,6 +17,11 @@ type CheckenvProvider func(string) (map[string]string, error)
 // via SSH or on cloud configuration stores.
 type InitFromEnvFunction func() error
 
+// noop is an InitFromEnvFunction with no effect. It returns nil.
+func noop() error {
+	return nil
+}
+
 // CheckenvPlugin represents all the metadata that checkenv requires about a registered plugin:
 // 1. A Help string to display to users explaining the plugins filter syntax, how it is initialized, and possibly more.
 // 2. An Init function which initializes the plugin when checkenv starts up.

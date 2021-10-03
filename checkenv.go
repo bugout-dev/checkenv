@@ -1,22 +1,120 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
+	"strings"
 )
 
-func main() {
-	for name, plugin := range RegisteredPlugins {
-		pluginInitErr := plugin.Init()
-		pluginEnv, pluginErr := plugin.Provider("")
-		fmt.Printf("Plugin: %s\n", name)
-		fmt.Printf("Help: %s\n", plugin.Help)
-		if pluginInitErr != nil {
-			fmt.Printf("Init error: %s\n", pluginInitErr.Error())
-		}
-		if pluginErr != nil {
-			fmt.Printf("Plugin error: %s\n", pluginErr.Error())
+type showSpec struct {
+	loadFrom      map[string]interface{}
+	providersFull map[string]interface{}
+	providerVars  map[string]map[string]interface{}
+}
+
+func parseShowSpec(args []string) *showSpec {
+	spec := showSpec{loadFrom: map[string]interface{}{}, providersFull: map[string]interface{}{}, providerVars: map[string]map[string]interface{}{}}
+	for _, arg := range args {
+		components := strings.Split(arg, "://")
+		providerSpec := components[0]
+		spec.loadFrom[providerSpec] = nil
+		if len(components) == 1 {
+			spec.providersFull[providerSpec] = nil
 		} else {
-			fmt.Printf("Env:\n%v\n", pluginEnv)
+			if _, ok := spec.providerVars[providerSpec]; !ok {
+				spec.providerVars[providerSpec] = map[string]interface{}{}
+			}
+			varSpec := strings.Join(components[1:], "://")
+			varNames := strings.Split(varSpec, ",")
+			for _, varName := range varNames {
+				spec.providerVars[providerSpec][varName] = nil
+			}
 		}
+	}
+
+	return &spec
+}
+
+func VariablesFromProviderSpec(providerSpec string) (map[string]string, error) {
+	components := strings.Split(providerSpec, "+")
+	provider := components[0]
+	var providerArgs string
+	if len(components) > 1 {
+		providerArgs = strings.Join(components[1:], "+")
+	}
+	plugin, pluginExists := RegisteredPlugins[provider]
+	if !pluginExists {
+		return map[string]string{}, fmt.Errorf("unregistered provider: %s", provider)
+	}
+	return plugin.Provider(providerArgs)
+}
+
+func main() {
+	pluginsCommand := "plugins"
+	pluginsFlags := flag.NewFlagSet("plugins", flag.ExitOnError)
+	pluginsHelp := pluginsFlags.Bool("h", false, "Use this flag if you want help with this command")
+	pluginsFlags.BoolVar(pluginsHelp, "help", false, "Use this flag if you want help with this command")
+
+	showCommand := "show"
+	showFlags := flag.NewFlagSet("show", flag.ExitOnError)
+	showHelp := showFlags.Bool("h", false, "Use this flag if you want help with this command")
+	showFlags.BoolVar(showHelp, "help", false, "Use this flag if you want help with this command")
+
+	availableCommands := fmt.Sprintf("%s,%s", pluginsCommand, showCommand)
+
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "Please use one of the subcommands: %s\n", availableCommands)
+		os.Exit(2)
+	}
+
+	command := os.Args[1]
+
+	switch command {
+	case pluginsCommand:
+		pluginsFlags.Parse(os.Args[2:])
+		if *pluginsHelp {
+			fmt.Fprintf(os.Stderr, "Usage: %s %s\nTakes no arguments.\nLists available plugins with a brief description of each one.\n", os.Args[0], os.Args[1])
+			os.Exit(2)
+		}
+		fmt.Println("Available plugins:")
+		for name, plugin := range RegisteredPlugins {
+			fmt.Printf("%s\n\t%s\n", name, plugin.Help)
+		}
+	case showCommand:
+		showFlags.Parse(os.Args[2:])
+		if *showHelp || showFlags.NArg() == 0 {
+			fmt.Fprintf(os.Stderr, "Usage: %s %s [<provider_name>[+<provider_args>] ...] [<provider_name>[+<provider_args>]://<var_name_1>,<var_name_2>,...,<var_name_n> ...]\nShows the environment variables defined by the given providers.\n", os.Args[0], os.Args[1])
+			os.Exit(2)
+		}
+		spec := parseShowSpec(showFlags.Args())
+		providedVars := make(map[string]map[string]string)
+		for providerSpec, _ := range spec.loadFrom {
+			vars, providerErr := VariablesFromProviderSpec(providerSpec)
+			if providerErr != nil {
+				panic(providerErr)
+			}
+			providedVars[providerSpec] = vars
+		}
+		for providerSpec, _ := range spec.providersFull {
+			fmt.Printf("%s - all variables:\n", providerSpec)
+			for k, v := range providedVars[providerSpec] {
+				fmt.Printf("- %s=%s\n", k, v)
+			}
+		}
+		for providerSpec, queriedVars := range spec.providerVars {
+			fmt.Printf("%s - specific variables:\n", providerSpec)
+			definedVars := providedVars[providerSpec]
+			for k, _ := range queriedVars {
+				v, ok := definedVars[k]
+				if !ok {
+					fmt.Printf("- UNDEFINED: %s\n", k)
+				} else {
+					fmt.Printf("- %s=%s\n", k, v)
+				}
+			}
+		}
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown command: %s. Please use one of the subcommands: %s.\n", command, availableCommands)
 	}
 }
