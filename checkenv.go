@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -17,6 +18,9 @@ func parseShowSpec(args []string) *showSpec {
 	spec := showSpec{loadFrom: map[string]interface{}{}, providersFull: map[string]interface{}{}, providerVars: map[string]map[string]interface{}{}}
 	for _, arg := range args {
 		components := strings.Split(arg, "://")
+		// TODO(zomglings): Can environment variable names contain the characters "://"? I don't think so.
+		// However, it is possible that the provider filter arguments *could* contain those characters. That
+		// means that this logic is wrong. We should probably use a different separator.
 		providerSpec := components[0]
 		spec.loadFrom[providerSpec] = nil
 		if len(components) == 1 {
@@ -89,14 +93,14 @@ func main() {
 		}
 		spec := parseShowSpec(showFlags.Args())
 		providedVars := make(map[string]map[string]string)
-		for providerSpec, _ := range spec.loadFrom {
+		for providerSpec := range spec.loadFrom {
 			vars, providerErr := VariablesFromProviderSpec(providerSpec)
 			if providerErr != nil {
-				panic(providerErr)
+				log.Fatalf(providerErr.Error())
 			}
 			providedVars[providerSpec] = vars
 		}
-		for providerSpec, _ := range spec.providersFull {
+		for providerSpec := range spec.providersFull {
 			fmt.Printf("%s - all variables:\n", providerSpec)
 			for k, v := range providedVars[providerSpec] {
 				fmt.Printf("- %s=%s\n", k, v)
@@ -105,7 +109,7 @@ func main() {
 		for providerSpec, queriedVars := range spec.providerVars {
 			fmt.Printf("%s - specific variables:\n", providerSpec)
 			definedVars := providedVars[providerSpec]
-			for k, _ := range queriedVars {
+			for k := range queriedVars {
 				v, ok := definedVars[k]
 				if !ok {
 					fmt.Printf("- UNDEFINED: %s\n", k)
