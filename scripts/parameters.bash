@@ -26,6 +26,7 @@ and output as environment variable exports"
   echo "  -o  Output file name environment variables export to"
 }
 
+# TODO(kompotkot): Flag for export prefix
 product_flag=""
 output_flag=""
 verbose_flag="false"
