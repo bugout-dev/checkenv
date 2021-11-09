@@ -63,15 +63,23 @@ fi
 verbose "${PREFIX_INFO} Source environment variables"
 . ${file_flag}
 
-verbose "${PREFIX_INFO} Retrieving Ethereum node address and port"
+verbose "${PREFIX_INFO} Retrieving Ethereum node address"
 RETRIEVED_NODE_ETHEREUM_IPC_ADDR=$(aws route53 list-resource-record-sets --hosted-zone-id "${MOONSTREAM_INTERNAL_HOSTED_ZONE_ID}" --query "ResourceRecordSets[?Name == '${MOONSTREAM_ETHEREUM_WEB3_PROVIDER_URI}.'].ResourceRecords[].Value" | jq -r .[0])
-
 if [ "$RETRIEVED_NODE_ETHEREUM_IPC_ADDR" == "null" ]; then
-  verbose "${PREFIX_CRIT} Ethereum node address is null"
+  verbose "${PREFIX_CRIT} Ethereum node internal DNS record address is null"
   exit 1
 fi
 
-verbose "${PREFIX_INFO} Updating MOONSTREAM_NODE_ETHEREUM_IPC_ADDR"
+verbose "${PREFIX_INFO} Retrieving Polygon node address"
+RETRIEVED_NODE_POLYGON_IPC_ADDR=$(aws route53 list-resource-record-sets --hosted-zone-id "${MOONSTREAM_INTERNAL_HOSTED_ZONE_ID}" --query "ResourceRecordSets[?Name == '${MOONSTREAM_POLYGON_WEB3_PROVIDER_URI}.'].ResourceRecords[].Value" | jq -r .[0])
+if [ "$RETRIEVED_NODE_POLYGON_IPC_ADDR" == "null" ]; then
+  verbose "${PREFIX_CRIT} Polygon node internal DNS record address is null"
+  exit 1
+fi
+
 # TODO(kompotkot): Modify regexp to work with export prefix
+verbose "${PREFIX_INFO} Updating MOONSTREAM_NODE_ETHEREUM_IPC_ADDR with ${RETRIEVED_NODE_ETHEREUM_IPC_ADDR}"
 sed -i "s|^MOONSTREAM_NODE_ETHEREUM_IPC_ADDR=.*|MOONSTREAM_NODE_ETHEREUM_IPC_ADDR=\"$RETRIEVED_NODE_ETHEREUM_IPC_ADDR\"|" ${file_flag}
 
+verbose "${PREFIX_INFO} Updating MOONSTREAM_NODE_POLYGON_IPC_ADDR with ${RETRIEVED_NODE_POLYGON_IPC_ADDR}"
+sed -i "s|^MOONSTREAM_NODE_POLYGON_IPC_ADDR=.*|MOONSTREAM_NODE_POLYGON_IPC_ADDR=\"$RETRIEVED_NODE_POLYGON_IPC_ADDR\"|" ${file_flag}
