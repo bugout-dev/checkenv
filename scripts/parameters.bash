@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 #
-# Collect secrets from AWS SSM Parameter Store and output as environment variable exports.
+# Collect secrets from AWS SSM Parameter Store and 
+# opt out as environment variable exports.
+
+VERSION="0.0.1"
 
 # Colors
 C_RESET='\033[0m'
@@ -57,6 +60,8 @@ if [ -z "${product_flag}" ]; then
   usage
   exit 1
 fi
+
+verbose "${PREFIX_INFO} Script version: v${VERSION}"
 
 verbose "${PREFIX_INFO} Retrieving deployment parameters with tag ${C_GREEN}Product:${product_flag}${C_RESET}"
 ENV_PARAMETERS=$(aws ssm describe-parameters \

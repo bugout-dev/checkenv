@@ -3,6 +3,8 @@
 # Update nodes connection address environment variables 
 # from AWS Route53 internal hosted zone
 
+VERSION="0.0.1"
+
 # Colors
 C_RESET='\033[0m'
 C_RED='\033[1;31m'
@@ -59,6 +61,8 @@ if [ ! -f "${file_flag}" ]; then
   usage
   exit 1
 fi
+
+verbose "${PREFIX_INFO} Script version: v${VERSION}"
 
 verbose "${PREFIX_INFO} Source environment variables"
 . ${file_flag}
