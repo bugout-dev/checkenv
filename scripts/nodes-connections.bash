@@ -3,7 +3,7 @@
 # Update nodes connection address environment variables 
 # from AWS Route53 internal hosted zone
 
-VERSION="0.0.1"
+VERSION='0.0.1'
 
 # Colors
 C_RESET='\033[0m'

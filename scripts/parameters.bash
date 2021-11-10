@@ -3,7 +3,7 @@
 # Collect secrets from AWS SSM Parameter Store and 
 # opt out as environment variable exports.
 
-VERSION="0.0.1"
+VERSION='0.0.1'
 
 # Colors
 C_RESET='\033[0m'
