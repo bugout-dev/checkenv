@@ -3,7 +3,7 @@
 # Collect secrets from AWS SSM Parameter Store and 
 # opt out as environment variable exports.
 
-VERSION='0.0.1'
+VERSION='0.0.2'
 
 # Colors
 C_RESET='\033[0m'
@@ -25,19 +25,22 @@ and output as environment variable exports"
   echo
   echo "Optional arguments:"
   echo "  -h  Show this help message and exit"
-  echo "  -p  Product tag (moonstream, spire, brood, drones)"
+  echo "  -n  Provide true if server is Blockchain node"
   echo "  -o  Output file name environment variables export to"
+  echo "  -p  Product tag (moonstream, spire, brood, drones)"
 }
 
 # TODO(kompotkot): Flag for export prefix
-product_flag=""
+node_flag=""
 output_flag=""
+product_flag=""
 verbose_flag="false"
 
-while getopts 'p:o:v' flag; do
+while getopts 'no:p:v' flag; do
   case "${flag}" in
-    p) product_flag="${OPTARG}" ;;
+    n) node_flag="true" ;;
     o) output_flag="${OPTARG}" ;;
+    p) product_flag="${OPTARG}" ;;
     h) usage
       exit 1 ;;
     v) verbose_flag="true" ;;
@@ -63,9 +66,15 @@ fi
 
 verbose "${PREFIX_INFO} Script version: v${VERSION}"
 
+PARAMETER_FILTERS="Key=tag:Product,Values=${product_flag}"
+if [ "${node_flag}" == "true" ]; then
+  verbose "${PREFIX_INFO} Node flag provided, extracting environment variables only for nodes"
+  PARAMETER_FILTERS="$PARAMETER_FILTERS Key=tag:Node,Values=true"
+fi
+
 verbose "${PREFIX_INFO} Retrieving deployment parameters with tag ${C_GREEN}Product:${product_flag}${C_RESET}"
 ENV_PARAMETERS=$(aws ssm describe-parameters \
-  --parameter-filters Key=tag:Product,Values=${product_flag} \
+  --parameter-filters ${PARAMETER_FILTERS} \
   | jq -r .Parameters[].Name)
 if [ -z "${ENV_PARAMETERS}" ]; then
   verbose "${PREFIX_CRIT} There no parameters for provided product tag"
