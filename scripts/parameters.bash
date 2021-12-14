@@ -3,7 +3,7 @@
 # Collect secrets from AWS SSM Parameter Store and 
 # opt out as environment variable exports.
 
-VERSION='0.0.2'
+VERSION='0.0.3'
 
 # Colors
 C_RESET='\033[0m'
@@ -25,19 +25,22 @@ and output as environment variable exports"
   echo
   echo "Optional arguments:"
   echo "  -h  Show this help message and exit"
+  echo "  -e  Add 'export' prefix before each environment variable"
   echo "  -n  Provide true if server is Blockchain node"
   echo "  -o  Output file name environment variables export to"
   echo "  -p  Product tag (moonstream, spire, brood, drones)"
 }
 
 # TODO(kompotkot): Flag for export prefix
+export_flag=""
 node_flag=""
 output_flag=""
 product_flag=""
 verbose_flag="false"
 
-while getopts 'no:p:v' flag; do
+while getopts 'eno:p:v' flag; do
   case "${flag}" in
+    e) export_flag="export " ;;
     n) node_flag="true" ;;
     o) output_flag="${OPTARG}" ;;
     p) product_flag="${OPTARG}" ;;
@@ -91,8 +94,8 @@ for i in $(seq 0 $((${ENV_PARAMETERS_VALUES_LENGTH} - 1))); do
   param_key=$(echo ${ENV_PARAMETERS_VALUES} | jq -r .[$i].Name)
   param_value=$(echo ${ENV_PARAMETERS_VALUES} | jq .[$i].Value)
   if [ -z "${output_flag}" ]; then
-    echo "${param_key}=${param_value}"
+    echo "${export_flag}${param_key}=${param_value}"
   else
-    echo "${param_key}=${param_value}" >> "${output_flag}"
+    echo "${export_flag}${param_key}=${param_value}" >> "${output_flag}"
   fi
 done
