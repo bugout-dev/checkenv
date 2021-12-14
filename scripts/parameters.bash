@@ -31,7 +31,6 @@ and output as environment variable exports"
   echo "  -p  Product tag (moonstream, spire, brood, drones)"
 }
 
-# TODO(kompotkot): Flag for export prefix
 export_flag=""
 node_flag=""
 output_flag=""
