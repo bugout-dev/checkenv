@@ -1,0 +1,44 @@
+[
+    {
+        "Name": "/wrong/dev/y1",
+        "Value": "w1",
+        "Tags": [
+            {
+                "Product": "wrong"
+            }
+        ]
+    },
+    {
+        "Name": "/test/dev/t1",
+        "Value": "q1",
+        "Tags": [
+            {
+                "Product": "test"
+            }
+        ]
+    },
+    {
+        "Name": "/test/dev/t2",
+        "Value": "q2",
+        "Tags": [
+            {
+                "Product": "test",
+                "Application": "dev"
+            }
+        ]
+    },
+    {
+        "Name": "/test/dev/t3",
+        "Value": "q3",
+        "Tags": []
+    },
+    {
+        "Name": "/test/dev/t4",
+        "Value": "q4",
+        "Tags": [
+            {
+                "Product": "wrong"
+            }
+        ]
+    }
+]
