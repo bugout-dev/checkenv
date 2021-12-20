@@ -26,3 +26,25 @@ func TestGenerateChunks(t *testing.T) {
 		}
 	}
 }
+
+func TestFilterTags(t *testing.T) {
+	var emptyFilterTags []FilterTag
+	var cases = []struct {
+		filterTagsStr string
+		expected      []FilterTag
+	}{
+		{"Product", emptyFilterTags},
+		{"Product:", emptyFilterTags},
+		{":test", emptyFilterTags},
+		{":", emptyFilterTags},
+		{"Product:test", []FilterTag{{Name: "Product", Value: "test"}}},
+		{"Product:test,Node:true", []FilterTag{{Name: "Product", Value: "test"}, {Name: "Node", Value: "true"}}},
+	}
+	for _, c := range cases {
+		filterTags := ParseFilterTags(c.filterTagsStr)
+		if !reflect.DeepEqual(filterTags, c.expected) {
+			t.Logf("Value should be %s, but got %s", c.expected, filterTags)
+			t.Fatal()
+		}
+	}
+}

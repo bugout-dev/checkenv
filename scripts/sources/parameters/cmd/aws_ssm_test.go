@@ -89,7 +89,7 @@ func TestDescribeParameters(t *testing.T) {
 
 	api := &SSMDescribeParametersImpl{}
 
-	flags := Flags{ProductTag: "test"}
+	flags := Flags{FilterTags: []FilterTag{{Name: "Product", Value: "test"}}}
 
 	// Test DescribeParameters
 	parameterKeys := FetchKeysOfParameters(

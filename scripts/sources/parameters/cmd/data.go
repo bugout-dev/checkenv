@@ -7,11 +7,17 @@ type Parameter struct {
 	Export string
 }
 
+// Tags for filter defined by user
+type FilterTag struct {
+	Name  string
+	Value string
+}
+
 // Contains command-line flags defined by user
 type Flags struct {
 	Export     bool
 	MaxResults int
 	Outfile    string
-	ProductTag string
+	FilterTags []FilterTag
 	Update     bool
 }

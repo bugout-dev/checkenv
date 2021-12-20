@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
@@ -51,12 +52,13 @@ func FetchKeysOfParameters(
 	var parameters []string
 
 	// Set parameter filters
-	filterKey := "tag:Product"
-	parameterFilters := []types.ParameterStringFilter{
-		{
+	parameterFilters := []types.ParameterStringFilter{}
+	for _, ft := range flags.FilterTags {
+		filterKey := fmt.Sprintf("tag:%s", ft.Name)
+		parameterFilters = append(parameterFilters, types.ParameterStringFilter{
 			Key:    &filterKey,
-			Values: []string{flags.ProductTag},
-		},
+			Values: []string{ft.Value},
+		})
 	}
 	describeInput := &ssm.DescribeParametersInput{
 		MaxResults:       int32(flags.MaxResults),
@@ -107,6 +109,26 @@ func GenerateChunks(flatSlice []string, chunkSize int) [][]string {
 	return chunks
 }
 
+// ParseFilterTags convert string from user input to key value structure
+func ParseFilterTags(filterTagsStr string) []FilterTag {
+	var filterTags []FilterTag
+
+	filterTagsSlice := strings.Split(filterTagsStr, ",")
+	for _, t := range filterTagsSlice {
+		tagNameValue := strings.Split(t, ":")
+		if len(tagNameValue) != 2 || len(tagNameValue[0]) == 0 || len(tagNameValue[1]) == 0 {
+			log.Printf("Unable to parse tag name and value: %s", t)
+			continue
+		}
+		filterTags = append(filterTags, FilterTag{
+			Name:  tagNameValue[0],
+			Value: tagNameValue[1],
+		})
+	}
+
+	return filterTags
+}
+
 // WriteToFile generate or update existing file and
 // flash to it environment variables
 func WriteToFile(parameters []Parameter, outfile string, update bool, export bool) {
@@ -150,16 +172,21 @@ func HandleSignals(cancel context.CancelFunc) {
 
 func Extract() {
 	var flags Flags
+	var filterTagsStr string
 	flag.BoolVar(&flags.Export, "export", false, "Add prefix 'export' to each parameter")
 	flag.IntVar(&flags.MaxResults, "max", 3, "The maximum number of items to return for call to AWS")
 	flag.StringVar(&flags.Outfile, "outfile", "", "Output file where parameters will be saved")
-	flag.StringVar(&flags.ProductTag, "product", "", "Product tag")
+	flag.StringVar(&filterTagsStr, "tags", "", "Product tags for filter separated by comma in format 'tagName1:tagValue1,tagName2:tagValue2'")
 	flag.BoolVar(&flags.Update, "update", false, "Update existing file if exists (by default the file will be overwritten)")
 	flag.Parse()
 
-	if flags.ProductTag == "" {
-		log.Fatalln("Please specify the tag of product")
+	if filterTagsStr == "" {
+		log.Fatalln("Please specify the tags for filter, at least Product tag")
 	}
+
+	// Convert string of tags for filter to key:value structure
+	filterTags := ParseFilterTags(filterTagsStr)
+	flags.FilterTags = filterTags
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go HandleSignals(cancel)
