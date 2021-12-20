@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -58,6 +60,21 @@ func FetchKeysOfParameters(
 		MaxResults:       10,
 		ParameterFilters: parameterFilters,
 	}
+
+	// CHECKENV_AWS_FETCH_LOOP_LIMIT by default set to 10,
+	// it is allows to load 100 parameters from AWS and it is
+	// a limiter to prevent loading too many parameters without
+	// control during passing erroneous filters
+	var err error
+	var fetchLoopLimit int
+	fetchLoopLimitStr := os.Getenv("CHECKENV_AWS_FETCH_LOOP_LIMIT")
+	if fetchLoopLimitStr != "" {
+		fetchLoopLimit, err = strconv.Atoi(fetchLoopLimitStr)
+	}
+	if fetchLoopLimitStr == "" || err != nil {
+		fetchLoopLimit = 10
+	}
+
 	n := 0
 	for {
 		// Fetch list of parameter keys
@@ -76,7 +93,7 @@ func FetchKeysOfParameters(
 		describeInput.NextToken = results.NextToken
 
 		n++
-		if n >= 50 {
+		if n >= fetchLoopLimit {
 			log.Fatal("To many iterations over DescribeParameters loop")
 		}
 	}
