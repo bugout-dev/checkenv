@@ -66,7 +66,7 @@ var globalData []Data
 var globalParameterKeys []string
 
 func populateData(t *testing.T) error {
-	content, err := ioutil.ReadFile("../data.json")
+	content, err := ioutil.ReadFile("./data.json")
 	if err != nil {
 		return err
 	}
