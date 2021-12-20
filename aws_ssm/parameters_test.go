@@ -1,4 +1,4 @@
-package parameters
+package aws_ssm
 
 import (
 	"reflect"

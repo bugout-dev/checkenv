@@ -1,4 +1,4 @@
-package parameters
+package aws_ssm
 
 // Parameter structure for storing final result from AWS SSM
 type Parameter struct {

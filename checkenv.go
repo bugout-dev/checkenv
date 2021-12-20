@@ -64,6 +64,7 @@ func main() {
 	showFlags := flag.NewFlagSet("show", flag.ExitOnError)
 	showHelp := showFlags.Bool("h", false, "Use this flag if you want help with this command")
 	showFlags.BoolVar(showHelp, "help", false, "Use this flag if you want help with this command")
+	showExport := showFlags.Bool("export", false, "Use this flag to prepend and \"export \" before every environment variable definition")
 
 	availableCommands := fmt.Sprintf("%s,%s", pluginsCommand, showCommand)
 
@@ -100,21 +101,27 @@ func main() {
 			}
 			providedVars[providerSpec] = vars
 		}
+
+		exportPrefix := ""
+		if *showExport {
+			exportPrefix = "export "
+		}
+
 		for providerSpec := range spec.providersFull {
-			fmt.Printf("%s - all variables:\n", providerSpec)
+			fmt.Printf("# %s - all variables:\n", providerSpec)
 			for k, v := range providedVars[providerSpec] {
-				fmt.Printf("- %s=%s\n", k, v)
+				fmt.Printf("%s%s=%s\n", exportPrefix, k, v)
 			}
 		}
 		for providerSpec, queriedVars := range spec.providerVars {
-			fmt.Printf("%s - specific variables:\n", providerSpec)
+			fmt.Printf("# %s - specific variables:\n", providerSpec)
 			definedVars := providedVars[providerSpec]
 			for k := range queriedVars {
 				v, ok := definedVars[k]
 				if !ok {
-					fmt.Printf("- UNDEFINED: %s\n", k)
+					fmt.Printf("# UNDEFINED: %s\n", k)
 				} else {
-					fmt.Printf("- %s=%s\n", k, v)
+					fmt.Printf("%s%s=%s\n", exportPrefix, k, v)
 				}
 			}
 		}

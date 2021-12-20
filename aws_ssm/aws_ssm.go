@@ -1,7 +1,7 @@
 /*
 Based on: https://github.com/awsdocs/aws-doc-sdk-examples/blob/main/gov2/ssm/GetParameter/GetParameterv2.go
 */
-package parameters
+package aws_ssm
 
 import (
 	"context"
@@ -11,18 +11,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
-// SSMGetParametersAPI and SSMDescribeParametersAPI defines the interface
-// for the GetParameters and DescribeParameters function.
-// We use this interface to test the function using a mocked service
-type SSMGetParametersAPI interface {
+type AWSSystemsManagerParameterStore interface {
 	GetParameters(
 		ctx context.Context,
 		params *ssm.GetParametersInput,
 		optFns ...func(*ssm.Options),
 	) (*ssm.GetParametersOutput, error)
-}
 
-type SSMDescribeParametersAPI interface {
 	DescribeParameters(
 		ctx context.Context,
 		params *ssm.DescribeParametersInput,
@@ -38,11 +33,11 @@ type SSMDescribeParametersAPI interface {
 // Output:
 // 		If success, a GetParametersOutput object containing the result of the service call and nil
 // 		Otherwise, nil and an error from the call to GetParameters
-func ExecGetParameters(c context.Context, api SSMGetParametersAPI, input *ssm.GetParametersInput) (*ssm.GetParametersOutput, error) {
+func ExecGetParameters(c context.Context, api AWSSystemsManagerParameterStore, input *ssm.GetParametersInput) (*ssm.GetParametersOutput, error) {
 	return api.GetParameters(c, input)
 }
 
-func ExecDescribeParameters(c context.Context, api SSMDescribeParametersAPI, input *ssm.DescribeParametersInput) (*ssm.DescribeParametersOutput, error) {
+func ExecDescribeParameters(c context.Context, api AWSSystemsManagerParameterStore, input *ssm.DescribeParametersInput) (*ssm.DescribeParametersOutput, error) {
 	return api.DescribeParameters(c, input)
 }
 
