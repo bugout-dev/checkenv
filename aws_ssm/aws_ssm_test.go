@@ -13,10 +13,9 @@ import (
 )
 
 // Fill fake output data
-type SSMGetParametersImpl struct{}
-type SSMDescribeParametersImpl struct{}
+type MockAWSSystemManagerParameterStore struct{}
 
-func (dt SSMGetParametersImpl) GetParameters(
+func (dt MockAWSSystemManagerParameterStore) GetParameters(
 	ctx context.Context,
 	params *ssm.GetParametersInput,
 	optFns ...func(*ssm.Options),
@@ -34,7 +33,7 @@ func (dt SSMGetParametersImpl) GetParameters(
 
 	return output, nil
 }
-func (dt SSMDescribeParametersImpl) DescribeParameters(
+func (dt MockAWSSystemManagerParameterStore) DescribeParameters(
 	ctx context.Context,
 	params *ssm.DescribeParametersInput,
 	optFns ...func(*ssm.Options),
@@ -87,7 +86,7 @@ func TestDescribeParameters(t *testing.T) {
 		t.Fatal("Failed to populate data")
 	}
 
-	api := &SSMDescribeParametersImpl{}
+	api := &MockAWSSystemManagerParameterStore{}
 
 	flags := Flags{FilterTags: []FilterTag{{Name: "Product", Value: "test"}}}
 
@@ -111,7 +110,7 @@ func TestDescribeParameters(t *testing.T) {
 func TestGetParameters(t *testing.T) {
 	parameterKeyChunks := GenerateChunks(globalParameterKeys, 10)
 
-	api := &SSMGetParametersImpl{}
+	api := &MockAWSSystemManagerParameterStore{}
 
 	flags := Flags{Export: false}
 

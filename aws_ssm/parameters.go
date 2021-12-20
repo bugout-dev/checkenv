@@ -16,7 +16,7 @@ import (
 // Fetch values for parameters
 // Inputs:
 //		chunks: list of lists with parameter key values
-func FetchParameters(ctx context.Context, api SSMGetParametersAPI, chunks [][]string, flags Flags) []Parameter {
+func FetchParameters(ctx context.Context, api AWSSystemsManagerParameterStore, chunks [][]string, flags Flags) []Parameter {
 	var parameters []Parameter
 
 	for _, chunk := range chunks {
@@ -46,7 +46,7 @@ func FetchParameters(ctx context.Context, api SSMGetParametersAPI, chunks [][]st
 // Fetch list of parameter keys from AWS with defined filters
 func FetchKeysOfParameters(
 	ctx context.Context,
-	api SSMDescribeParametersAPI,
+	api AWSSystemsManagerParameterStore,
 	flags Flags,
 ) []string {
 	var parameters []string
