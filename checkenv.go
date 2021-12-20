@@ -108,13 +108,13 @@ func main() {
 		}
 
 		for providerSpec := range spec.providersFull {
-			fmt.Printf("# %s - all variables:\n", providerSpec)
+			fmt.Printf("# Generated with %s - all variables:\n", providerSpec)
 			for k, v := range providedVars[providerSpec] {
 				fmt.Printf("%s%s=%s\n", exportPrefix, k, v)
 			}
 		}
 		for providerSpec, queriedVars := range spec.providerVars {
-			fmt.Printf("# %s - specific variables:\n", providerSpec)
+			fmt.Printf("# Generated with %s - specific variables:\n", providerSpec)
 			definedVars := providedVars[providerSpec]
 			for k := range queriedVars {
 				v, ok := definedVars[k]

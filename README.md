@@ -20,10 +20,11 @@ except they explicitly `export` the environment variables. We source these envir
 run the development versions of our applications.
 
 It can sometimes be difficult to understand:
-1. Whether all the environment variables we *expect* to be defined in production actually have been.
+
+1. Whether all the environment variables we _expect_ to be defined in production actually have been.
 2. What the particular value of a production environment actually is.
 3. What the differences are between our expectations and the actual environment variables in a running
-application process.
+   application process.
 
 We are building and maintaining `checkenv` to make it easier for us to diagnose and fix issues with
 application configuration via environment variables. We stand in solidarity with anyone else who
@@ -40,3 +41,24 @@ binary which supports your needs.
 
 There is currently no need to support runtime plugins. Since doing so would make this program a lot
 more complicated, we have decided to forego runtime plugin functionality for now.
+
+## Usage
+
+```bash
+./checkenv plugins
+```
+
+Available plugins:
+
+-   env - Provides the environment variables defined in the checkenv process.
+-   file - Provides the environment variables defined in the env file with the given path.
+-   proc - Provides the environment variables set for the process with the given pid.
+-   aws_ssm - Provides environment variables defined in AWS Systems Manager Parameter Store.
+
+### aws_ssm plugin
+
+In order to fetch parameters with tags `Product` = `test` and `Node` = `true` with `export ` prefix execute following command
+
+```bash
+./checkenv show -export aws_ssm+Product:test,Node:true
+```

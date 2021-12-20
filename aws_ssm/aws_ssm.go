@@ -11,7 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
-type AWSSystemsManagerParameterStore interface {
+// AWSSystemsManagerParameterStoreAPI defines the interface
+// for the GetParameters and DescribeParameters function.
+// We use this interface to test the function using a mocked service
+type AWSSystemsManagerParameterStoreAPI interface {
 	GetParameters(
 		ctx context.Context,
 		params *ssm.GetParametersInput,
@@ -33,11 +36,11 @@ type AWSSystemsManagerParameterStore interface {
 // Output:
 // 		If success, a GetParametersOutput object containing the result of the service call and nil
 // 		Otherwise, nil and an error from the call to GetParameters
-func ExecGetParameters(c context.Context, api AWSSystemsManagerParameterStore, input *ssm.GetParametersInput) (*ssm.GetParametersOutput, error) {
+func ExecGetParameters(c context.Context, api AWSSystemsManagerParameterStoreAPI, input *ssm.GetParametersInput) (*ssm.GetParametersOutput, error) {
 	return api.GetParameters(c, input)
 }
 
-func ExecDescribeParameters(c context.Context, api AWSSystemsManagerParameterStore, input *ssm.DescribeParametersInput) (*ssm.DescribeParametersOutput, error) {
+func ExecDescribeParameters(c context.Context, api AWSSystemsManagerParameterStoreAPI, input *ssm.DescribeParametersInput) (*ssm.DescribeParametersOutput, error) {
 	return api.DescribeParameters(c, input)
 }
 

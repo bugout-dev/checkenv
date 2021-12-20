@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -14,7 +13,7 @@ import (
 // Fetch values for parameters
 // Inputs:
 //		chunks: list of lists with parameter key values
-func FetchParameters(ctx context.Context, api AWSSystemsManagerParameterStore, chunks [][]string, flags Flags) []Parameter {
+func FetchParameters(ctx context.Context, api AWSSystemsManagerParameterStoreAPI, chunks [][]string) []Parameter {
 	var parameters []Parameter
 
 	for _, chunk := range chunks {
@@ -30,9 +29,6 @@ func FetchParameters(ctx context.Context, api AWSSystemsManagerParameterStore, c
 			parameter := Parameter{
 				Name: *p.Name, Value: *p.Value,
 			}
-			if flags.Export {
-				parameter.Export = "export "
-			}
 			parameters = append(parameters, parameter)
 		}
 	}
@@ -44,14 +40,14 @@ func FetchParameters(ctx context.Context, api AWSSystemsManagerParameterStore, c
 // Fetch list of parameter keys from AWS with defined filters
 func FetchKeysOfParameters(
 	ctx context.Context,
-	api AWSSystemsManagerParameterStore,
-	flags Flags,
+	api AWSSystemsManagerParameterStoreAPI,
+	filterTags []FilterTag,
 ) []string {
 	var parameters []string
 
 	// Set parameter filters
 	parameterFilters := []types.ParameterStringFilter{}
-	for _, ft := range flags.FilterTags {
+	for _, ft := range filterTags {
 		filterKey := fmt.Sprintf("tag:%s", ft.Name)
 		parameterFilters = append(parameterFilters, types.ParameterStringFilter{
 			Key:    &filterKey,
@@ -59,7 +55,7 @@ func FetchKeysOfParameters(
 		})
 	}
 	describeInput := &ssm.DescribeParametersInput{
-		MaxResults:       int32(flags.MaxResults),
+		MaxResults:       10,
 		ParameterFilters: parameterFilters,
 	}
 	n := 0
@@ -125,31 +121,4 @@ func ParseFilterTags(filterTagsStr string) []FilterTag {
 	}
 
 	return filterTags
-}
-
-// WriteToFile generate or update existing file and
-// flash to it environment variables
-func WriteToFile(parameters []Parameter, outfile string, update bool, export bool) {
-	flag := os.O_TRUNC | os.O_CREATE | os.O_WRONLY
-	if update {
-		flag = os.O_APPEND | os.O_CREATE | os.O_WRONLY
-	}
-
-	f, err := os.OpenFile(
-		outfile,
-		flag,
-		0644,
-	)
-	if err != nil {
-		log.Fatalf("Unable to open file %s, error: %s", outfile, err)
-	}
-	defer f.Close()
-
-	parametersStr := ""
-	for _, p := range parameters {
-		parametersStr += fmt.Sprintf("%s%s=%s\n", p.Export, p.Name, p.Value)
-	}
-	if _, err := f.WriteString(parametersStr); err != nil {
-		log.Fatalf("Unable to write to file %s, error: %s", outfile, err)
-	}
 }
