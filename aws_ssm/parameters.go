@@ -2,11 +2,9 @@ package aws_ssm
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -79,7 +77,7 @@ func FetchKeysOfParameters(
 		if results.NextToken == nil {
 			break
 		}
-		describeInput.NextToken = *&results.NextToken
+		describeInput.NextToken = results.NextToken
 
 		n++
 		if n >= 50 {
@@ -153,61 +151,5 @@ func WriteToFile(parameters []Parameter, outfile string, update bool, export boo
 	}
 	if _, err := f.WriteString(parametersStr); err != nil {
 		log.Fatalf("Unable to write to file %s, error: %s", outfile, err)
-	}
-}
-
-// HandleSignals process Ctrl+C and all script interruptions
-func HandleSignals(cancel context.CancelFunc) {
-	sigCh := make(chan os.Signal)
-	signal.Notify(sigCh, os.Interrupt)
-	for {
-		sig := <-sigCh
-		switch sig {
-		case os.Interrupt:
-			cancel()
-			return
-		}
-	}
-}
-
-func Extract() {
-	var flags Flags
-	var filterTagsStr string
-	flag.BoolVar(&flags.Export, "export", false, "Add prefix 'export' to each parameter")
-	flag.IntVar(&flags.MaxResults, "max", 3, "The maximum number of items to return for call to AWS")
-	flag.StringVar(&flags.Outfile, "outfile", "", "Output file where parameters will be saved")
-	flag.StringVar(&filterTagsStr, "tags", "", "Product tags for filter separated by comma in format 'tagName1:tagValue1,tagName2:tagValue2'")
-	flag.BoolVar(&flags.Update, "update", false, "Update existing file if exists (by default the file will be overwritten)")
-	flag.Parse()
-
-	if filterTagsStr == "" {
-		log.Fatalln("Please specify the tags for filter, at least Product tag")
-	}
-
-	// Convert string of tags for filter to key:value structure
-	filterTags := ParseFilterTags(filterTagsStr)
-	flags.FilterTags = filterTags
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go HandleSignals(cancel)
-
-	client := InitAWSClient(ctx)
-
-	parameterKeys := FetchKeysOfParameters(ctx, client, flags)
-
-	// Split slice of parameter keys to chunks by 10 (max len allowed by AWS)
-	// and fetch values for required parameters
-	parameterKeyChunks := GenerateChunks(parameterKeys, 10)
-	if len(parameterKeyChunks) == 0 {
-		log.Fatalln("Nothing to generate, empty slice provided")
-	}
-	parameters := FetchParameters(ctx, client, parameterKeyChunks, flags)
-
-	if flags.Outfile != "" {
-		WriteToFile(parameters, flags.Outfile, flags.Update, flags.Export)
-	} else {
-		for _, p := range parameters {
-			fmt.Printf("%s%s=%s\n", p.Export, p.Name, p.Value)
-		}
 	}
 }
