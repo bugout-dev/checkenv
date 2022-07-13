@@ -65,6 +65,8 @@ func main() {
 	showHelp := showFlags.Bool("h", false, "Use this flag if you want help with this command")
 	showFlags.BoolVar(showHelp, "help", false, "Use this flag if you want help with this command")
 	showExport := showFlags.Bool("export", false, "Use this flag to prepend and \"export \" before every environment variable definition")
+	showRaw := showFlags.Bool("raw", false, "Use this flag to prevent comments output")
+	showValue := showFlags.Bool("value", false, "Print value only")
 
 	availableCommands := fmt.Sprintf("%s,%s", pluginsCommand, showCommand)
 
@@ -108,20 +110,32 @@ func main() {
 		}
 
 		for providerSpec := range spec.providersFull {
-			fmt.Printf("# Generated with %s - all variables:\n", providerSpec)
+			if !*showRaw {
+				fmt.Printf("# Generated with %s - all variables:\n", providerSpec)
+			}
 			for k, v := range providedVars[providerSpec] {
-				fmt.Printf("%s%s=%s\n", exportPrefix, k, v)
+				if !*showValue {
+					fmt.Printf("%s%s=%s\n", exportPrefix, k, v)
+				} else {
+					fmt.Printf("%s\n", v)
+				}
 			}
 		}
 		for providerSpec, queriedVars := range spec.providerVars {
-			fmt.Printf("# Generated with %s - specific variables:\n", providerSpec)
+			if !*showRaw {
+				fmt.Printf("# Generated with %s - specific variables:\n", providerSpec)
+			}
 			definedVars := providedVars[providerSpec]
 			for k := range queriedVars {
 				v, ok := definedVars[k]
 				if !ok {
 					fmt.Printf("# UNDEFINED: %s\n", k)
 				} else {
-					fmt.Printf("%s%s=%s\n", exportPrefix, k, v)
+					if !*showValue {
+						fmt.Printf("%s%s=%s\n", exportPrefix, k, v)
+					} else {
+						fmt.Printf("%s\n", v)
+					}
 				}
 			}
 		}
