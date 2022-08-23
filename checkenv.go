@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const CHECKENV_VERSION = "v0.0.3"
+
 type showSpec struct {
 	loadFrom      map[string]interface{}
 	providersFull map[string]interface{}
@@ -68,7 +70,9 @@ func main() {
 	showRaw := showFlags.Bool("raw", false, "Use this flag to prevent comments output")
 	showValue := showFlags.Bool("value", false, "Print value only")
 
-	availableCommands := fmt.Sprintf("%s,%s", pluginsCommand, showCommand)
+	versionCommand := "version"
+
+	availableCommands := fmt.Sprintf("%s,%s,%s", pluginsCommand, showCommand, versionCommand)
 
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "Please use one of the subcommands: %s\n", availableCommands)
@@ -139,6 +143,13 @@ func main() {
 				}
 			}
 		}
+	case versionCommand:
+		pluginsFlags.Parse(os.Args[2:])
+		if *pluginsHelp {
+			fmt.Fprintf(os.Stderr, "Usage: %s %s\nShows version of checkenv.\n", os.Args[0], os.Args[1])
+			os.Exit(2)
+		}
+		fmt.Println(CHECKENV_VERSION)
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s. Please use one of the subcommands: %s.\n", command, availableCommands)
 	}
