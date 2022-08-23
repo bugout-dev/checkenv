@@ -20,7 +20,8 @@ func FetchParameters(ctx context.Context, api AWSSystemsManagerParameterStoreAPI
 
 	for _, chunk := range chunks {
 		getInput := &ssm.GetParametersInput{
-			Names: chunk,
+			Names:          chunk,
+			WithDecryption: true,
 		}
 		results, err := ExecGetParameters(ctx, api, getInput)
 		if err != nil {

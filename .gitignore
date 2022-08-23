@@ -15,5 +15,5 @@
 # vendor/
 
 # Custom
-checkenv
+checkenv_dev
 .secrets/
