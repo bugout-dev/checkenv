@@ -75,5 +75,5 @@ func ProcessEnvProvider(filter string) (map[string]string, error) {
 
 func init() {
 	helpString := "Provides the environment variables set for the process with the given pid."
-	RegisterPlugin("proc", helpString, noop, ProcessEnvProvider)
+	RegisterPlugin("proc", helpString, ProcessEnvProvider)
 }

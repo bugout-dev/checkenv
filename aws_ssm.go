@@ -34,5 +34,5 @@ func AWSSystemsManagerParameterStoreProvider(filter string) (map[string]string, 
 
 func init() {
 	helpString := "Provides environment variables defined in AWS Systems Manager Parameter Store."
-	RegisterPlugin("aws_ssm", helpString, noop, AWSSystemsManagerParameterStoreProvider)
+	RegisterPlugin("aws_ssm", helpString, AWSSystemsManagerParameterStoreProvider)
 }

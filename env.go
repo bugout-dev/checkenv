@@ -23,5 +23,5 @@ func CurrentEnvProvider(filter string) (map[string]string, error) {
 
 func init() {
 	helpString := "Provides the environment variables defined in the checkenv process."
-	RegisterPlugin("env", helpString, noop, CurrentEnvProvider)
+	RegisterPlugin("env", helpString, CurrentEnvProvider)
 }

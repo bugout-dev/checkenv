@@ -36,5 +36,5 @@ func EnvFileProvider(filter string) (map[string]string, error) {
 
 func init() {
 	helpString := "Provides the environment variables defined in the env file with the given path."
-	RegisterPlugin("file", helpString, noop, EnvFileProvider)
+	RegisterPlugin("file", helpString, EnvFileProvider)
 }
