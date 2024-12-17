@@ -8,4 +8,3 @@ PROGRAM_NAME="checkenv_dev"
 go build -o "$PROGRAM_NAME" .
 
 ./"$PROGRAM_NAME" "$@"
-

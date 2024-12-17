@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const CHECKENV_VERSION = "v0.0.3"
+const CHECKENV_VERSION = "v0.0.4"
 
 type showSpec struct {
 	loadFrom      map[string]interface{}
@@ -56,6 +56,15 @@ func VariablesFromProviderSpec(providerSpec string) (map[string]string, error) {
 	return plugin.Provider(providerArgs)
 }
 
+// Append quotes to value if needed
+func AddValueQuotes(val string, showQuotes bool) string {
+	if showQuotes {
+		return fmt.Sprintf("\"%s\"", val)
+	}
+
+	return val
+}
+
 func main() {
 	pluginsCommand := "plugins"
 	pluginsFlags := flag.NewFlagSet("plugins", flag.ExitOnError)
@@ -67,6 +76,7 @@ func main() {
 	showHelp := showFlags.Bool("h", false, "Use this flag if you want help with this command")
 	showFlags.BoolVar(showHelp, "help", false, "Use this flag if you want help with this command")
 	showExport := showFlags.Bool("export", false, "Use this flag to prepend and \"export \" before every environment variable definition")
+	showQuotes := showFlags.Bool("quotes", false, "Use this flag to put value in quotes")
 	showRaw := showFlags.Bool("raw", false, "Use this flag to prevent comments output")
 	showValue := showFlags.Bool("value", false, "Print value only")
 
@@ -119,9 +129,9 @@ func main() {
 			}
 			for k, v := range providedVars[providerSpec] {
 				if !*showValue {
-					fmt.Printf("%s%s=%s\n", exportPrefix, k, v)
+					fmt.Printf("%s%s=%s\n", exportPrefix, k, AddValueQuotes(v, *showQuotes))
 				} else {
-					fmt.Printf("%s\n", v)
+					fmt.Printf("%s\n", AddValueQuotes(v, *showQuotes))
 				}
 			}
 		}
@@ -136,9 +146,9 @@ func main() {
 					fmt.Printf("# UNDEFINED: %s\n", k)
 				} else {
 					if !*showValue {
-						fmt.Printf("%s%s=%s\n", exportPrefix, k, v)
+						fmt.Printf("%s%s=%s\n", exportPrefix, k, AddValueQuotes(v, *showQuotes))
 					} else {
-						fmt.Printf("%s\n", v)
+						fmt.Printf("%s\n", AddValueQuotes(v, *showQuotes))
 					}
 				}
 			}
